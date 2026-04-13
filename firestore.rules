@@ -1,0 +1,72 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // ===============================================================
+    // Assumed Data Model
+    // ===============================================================
+    //
+    // Collection: messages
+    // Document ID: auto-generated
+    // Fields:
+    //   - content: string (required, length 1-1000) - The message content
+    //   - author: string (optional, length 0-50) - The author's name
+    //   - createdAt: timestamp (required) - When the message was created
+    //
+    // ===============================================================
+
+    // ===============================================================
+    // Helper Functions
+    // ===============================================================
+    
+    // Validate required fields exist
+    function hasRequiredFields(fields) {
+      return request.resource.data.keys().hasAll(fields);
+    }
+    
+    // Validate that the document contains only the allowed fields
+    function hasOnlyAllowedFields(fields) {
+      return request.resource.data.keys().hasOnly(fields);
+    }
+
+    // Validate string length
+    function validStringLength(field, minLen, maxLen) {
+      return request.resource.data[field] is string &&
+        request.resource.data[field].size() >= minLen &&
+        request.resource.data[field].size() <= maxLen;
+    }
+
+    // Validate optional string
+    function isValidOptionalString(field, minLen, maxLen) {
+      return !(field in request.resource.data) ||
+             (request.resource.data[field] is string &&
+              request.resource.data[field].size() >= minLen &&
+              request.resource.data[field].size() <= maxLen);
+    }
+
+    // Domain Validator for Message
+    function isValidMessage() {
+      return hasRequiredFields(['content', 'createdAt']) &&
+             hasOnlyAllowedFields(['content', 'author', 'createdAt']) &&
+             validStringLength('content', 1, 1000) &&
+             isValidOptionalString('author', 0, 50) &&
+             request.resource.data.createdAt is timestamp &&
+             request.resource.data.createdAt == request.time;
+    }
+
+    // ===============================================================
+    // Rules
+    // ===============================================================
+
+    match /messages/{messageId} {
+      // Allow anyone to read the messages (anonymous board)
+      allow read: if true;
+      
+      // Allow anyone to create a message, as long as it's valid
+      allow create: if isValidMessage();
+      
+      // Do not allow updates or deletes to prevent abuse
+      allow update: if false;
+      allow delete: if false;
+    }
+  }
+}

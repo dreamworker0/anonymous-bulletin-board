@@ -1,0 +1,32 @@
+{
+  "entities": {
+    "Message": {
+      "title": "Message",
+      "description": "A message posted on the anonymous bulletin board.",
+      "type": "object",
+      "properties": {
+        "content": {
+          "type": "string",
+          "description": "The content of the message."
+        },
+        "author": {
+          "type": "string",
+          "description": "The name of the author (optional)."
+        },
+        "createdAt": {
+          "type": "timestamp",
+          "description": "The time the message was created."
+        }
+      },
+      "required": ["content", "createdAt"]
+    }
+  },
+  "firestore": {
+    "/messages/{messageId}": {
+      "schema": {
+        "$ref": "#/entities/Message"
+      },
+      "description": "Collection of anonymous messages."
+    }
+  }
+}

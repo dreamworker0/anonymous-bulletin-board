@@ -1,0 +1,5 @@
+{
+  "name": "익명 게시판",
+  "description": "로그인 없이 누구나 자유롭게 글을 남길 수 있는 익명 게시판 앱입니다.",
+  "requestFramePermissions": []
+}
